@@ -1,7 +1,7 @@
 {
 	"name": "vscode-jmbg",
 	"displayName": "jmbg",
-	"description": "JMBG tools",
+	"description": "JMBG tools: validate and generate random JMBG",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/borko-rajkovic/vscode-jmbg"
@@ -18,14 +18,21 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:vscode-jmbg.helloWorld"
+		"onCommand:vscode-jmbg.validate",
+		"onCommand:vscode-jmbg.generate-random"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "vscode-jmbg.helloWorld",
-				"title": "Hello World"
+				"command": "vscode-jmbg.validate",
+				"category": "JMBG",
+				"title": "Validate"
+			},
+			{
+				"command": "vscode-jmbg.generate-random",
+				"category": "JMBG",
+				"title": "Generate random"
 			}
 		]
 	},
@@ -55,5 +62,8 @@
 		"ts-loader": "^8.0.11",
 		"webpack": "^5.10.0",
 		"webpack-cli": "^4.2.0"
+	},
+	"dependencies": {
+		"ts-jmbg": "^1.0.0"
 	}
 }
