@@ -1,6 +1,7 @@
 {
 	"name": "vscode-jmbg",
 	"displayName": "jmbg",
+	"icon": "images/icon.png",
 	"description": "JMBG tools: validate and generate random JMBG",
 	"repository": {
 		"type": "git",
