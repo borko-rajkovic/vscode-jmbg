@@ -1,5 +1,7 @@
 # JMBG Extension for Visual Studio Code
 
+![Visual Studio Marketplace Installs - Azure DevOps Extension](https://img.shields.io/visual-studio-marketplace/azure-devops/installs/total/borko-rajkovic.vscode-jmbg)
+
 A wrapper around [ts-jmbg](https://github.com/borko-rajkovic/ts-jmbg) for Visual Studio Code.
 Quickly check of string is valid JMBG and generate random JMBG in multi-cursor selections.
 
