@@ -23,10 +23,10 @@ export const validateCommand = () => {
   const validResult = validateJMBG(text);
 
   if (validResult.valid) {
-    vscode.window.showInformationMessage(`${text} Valid!`);
+    vscode.window.showInformationMessage(`${text} valid JMBG!`);
   } else {
     vscode.window.showErrorMessage(
-      `${text} Invalid! ${parseErrorMessage(validResult.reason!)}`
+      `${text} invalid JMBG! ${parseErrorMessage(validResult.reason!)}`
     );
   }
 };
