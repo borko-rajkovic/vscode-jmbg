@@ -163,7 +163,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         hljs.initHighlightingOnLoad();
       </script>
 
-      <title>Cat Coding</title>
+      <title>JMBG</title>
     </head>
     <body>
       <h1 id="lines-of-code-counter">0</h1>
