@@ -20,10 +20,62 @@
 	],
 	"activationEvents": [
 		"onCommand:vscode-jmbg.validate",
-		"onCommand:vscode-jmbg.generate-random"
+		"onCommand:vscode-jmbg.generate-random",
+		"onView:vscode-jmbg-sidebar"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
+		"configuration": {
+			"properties": {
+				"vscode-jmbg.borderColor": {
+					"type": [
+						"string"
+					],
+					"default": "#65EAB9",
+					"description": "Change the border color. (Ex: 'red', '#FFF' #FFFFFFF, 'RGB(255,255,255)','RGB(255, 255, 255. 0.5) )"
+				},
+				"vscode-jmbg.borderWidth": {
+					"type": [
+						"string"
+					],
+					"default": "2px"
+				},
+				"vscode-jmbg.borderStyle": {
+					"type": [
+						"string"
+					],
+					"enum": [
+						"solid",
+						"dashed",
+						"inset",
+						"double",
+						"groove",
+						"outset",
+						"ridge"
+					],
+					"default": "solid"
+				}
+			}
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "vscode-jmbg-sidebar-view",
+					"title": "JMBG",
+					"icon": "images/icon.png"
+				}
+			]
+		},
+		"views": {
+			"vscode-jmbg-sidebar-view": [
+				{
+					"type": "webview",
+					"id": "vscode-jmbg-sidebar",
+					"name": "Validate and decode",
+					"icon": "images/icon.png"
+				}
+			]
+		},
 		"commands": [
 			{
 				"command": "vscode-jmbg.validate",
