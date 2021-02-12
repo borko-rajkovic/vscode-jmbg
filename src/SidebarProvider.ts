@@ -223,7 +223,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       <title>JMBG</title>
     </head>
     <body>
-      <h1 id="lines-of-code-counter">0</h1>
+      <h1 class="margin0" id="lines-of-code-counter">0</h1>
 
       <p id="p1">Hello, I'm TEXT 1</p>
 
