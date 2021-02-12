@@ -37,8 +37,6 @@
     .getElementById('sendToEditor')
     .addEventListener('click', sendToEditor);
 
-  document.body.addEventListener('onunload', onUnload);
-
   function copyToClipboard() {
     var copyText = document.getElementById('p1');
 
@@ -54,13 +52,6 @@
     vscode.postMessage({
       type: 'sendToEditor',
       value: copyText.innerHTML,
-    });
-  }
-
-  function onUnload() {
-    debugger;
-    vscode.postMessage({
-      type: 'unloaded',
     });
   }
 })();
