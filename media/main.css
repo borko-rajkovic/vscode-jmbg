@@ -1,0 +1,30 @@
+#p1 {
+  background-color: dimgrey;
+}
+
+#codeContainer {
+  display: flex;
+  background-color: #282828;
+  margin: 10px;
+  border-radius: 4px;
+  max-width: 800px;
+  min-width: 250px;
+}
+
+#preCode {
+  margin: 10px;
+  flex: 4;
+}
+
+#codeContainer > div {
+  flex: 1;
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.margin10 {
+  margin: 10px;
+}

@@ -54,4 +54,33 @@
       value: copyText.innerHTML,
     });
   }
+
+  let counter2 = 0;
+
+  function setAndHighlightElement() {
+    const a = {
+      a: counter2++,
+      b: null,
+      c: 'nesto',
+      d: undefined,
+      e: {
+        e1: 1,
+      },
+      f: [1, 2, 3, 4],
+    };
+
+    const s = JSON.stringify(a, null, 2);
+
+    document.getElementById('codeElement').innerHTML = s;
+
+    document.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightBlock(block);
+    });
+  }
+
+  setAndHighlightElement();
+
+  setInterval(() => {
+    setAndHighlightElement();
+  }, 200);
 })();
