@@ -143,126 +143,94 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     });
   }
 
+  private _styleUri(webview: vscode.Webview, resource: string) {
+    return webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, 'media', 'css', resource)
+    );
+  }
+
+  private _scriptUri(webview: vscode.Webview, resource: string) {
+    return webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, 'media', 'js', resource)
+    );
+  }
+
   private _getHtmlForWebview(webview: vscode.Webview) {
-    const stylesResetUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css')
-    );
-    const stylesVSCodeUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css')
-    );
-    const stylesMainUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'main.css')
-    );
+    // Styles
+    const stylesResetUri = this._styleUri(webview, 'reset.css');
+    const stylesVSCodeUri = this._styleUri(webview, 'vscode.css');
+    const stylesMainUri = this._styleUri(webview, 'main.css');
+    const stylesHighlightUri = this._styleUri(webview, 'gruvbox-dark.css');
+    const stylesMaterial = this._styleUri(webview, 'mat.light_blue-cyan.css');
+    const fontMaterial = this._styleUri(webview, 'font-material.css');
 
-    const stylesHighlightUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'gruvbox-dark.css')
-    );
-
-    const stylesMaterialComponentsWeb = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'material-components-web.min.css'
-      )
-    );
-
-    const stylesMaterialLightBlueCyan = webview.asWebviewUri(
-      vscode.Uri.joinPath(
-        this._extensionUri,
-        'media',
-        'material.light_blue-cyan.min.css'
-      )
-    );
-
-    const fontMaterial = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'font-material.css')
-    );
-
-    const highlightScriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'highlight.pack.js')
-    );
-
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js')
-    );
-
-    const materialScriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'material.min.js')
-    );
+    // Scripts
+    const highlightScriptUri = this._scriptUri(webview, 'highlight.pack.js');
+    const materialScriptUri = this._scriptUri(webview, 'material.min.js');
+    const scriptUri = this._scriptUri(webview, 'main.js');
 
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
 
-    return `<!DOCTYPE html>
+    return `
+    <!DOCTYPE html>
     <html lang="en">
+    
     <head>
-      <meta charset="UTF-8">
-
+      <meta charset="UTF-8" />
+    
       <!--
-        Use a content security policy to only allow loading images from https or from our extension directory,
-        and only allow scripts that have a specific nonce.
-      -->
-      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${webview.cspSource}; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
-
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-      <link href="${stylesResetUri}" rel="stylesheet">
-      <link href="${stylesVSCodeUri}" rel="stylesheet">
-      <link href="${stylesMainUri}" rel="stylesheet">
+            Use a content security policy to only allow loading images from https or from our extension directory,
+            and only allow scripts that have a specific nonce.
+          -->
+      <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; font-src ${webview.cspSource}; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';" />
+    
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+      <link href="${stylesResetUri}" rel="stylesheet" />
+      <link href="${stylesVSCodeUri}" rel="stylesheet" />
+      <link href="${stylesMainUri}" rel="stylesheet" />
       <link href="${stylesHighlightUri}" rel="stylesheet" />
-      <script nonce=${nonce} src="${highlightScriptUri}"></script>
-
-      <link href=${stylesMaterialComponentsWeb} rel="stylesheet"/>
-      <script nonce=${nonce} src=${materialScriptUri}></script>
-      <link rel="stylesheet" href=${stylesMaterialLightBlueCyan}/>
-    <link
-      rel="stylesheet"
-      href=${fontMaterial}
-    />
-
+      <script nonce="${nonce}" src="${highlightScriptUri}"></script>
+    
+      <script nonce="${nonce}" src="${materialScriptUri}"></script>
+      <link rel="stylesheet" href="${stylesMaterial}" />
+      <link rel="stylesheet" href="${fontMaterial}" />
+    
       <title>JMBG</title>
     </head>
+    
     <body>
       <h1 class="margin0" id="lines-of-code-counter">0</h1>
-
+    
       <p id="p1">Hello, I'm TEXT 1</p>
-
-      <div
-      id="codeContainer"
-    >
-      <pre id="preCode"
-      ><code id="codeElement" class="json"></code></pre>
-      <div>
-        <div class="margin10">
-          <button
-            id="btnCopy"
-            class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--accent"
-          >
-            <i class="material-icons mdc-button__icon" aria-hidden="true"
-              >content_copy</i
-            >
-          </button>
-          <div class="mdl-tooltip" for="btnCopy">Copy</div>
-        </div>
-        <div class="margin10">
-          <button
-            id="btnPaste"
-            class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--accent"
-          >
-            <i class="material-icons mdc-button__icon" aria-hidden="true"
-              >send</i
-            >
-          </button>
-          <div class="mdl-tooltip" for="btnPaste">Send to editor</div>
+    
+      <div id="codeContainer">
+        <pre id="preCode"><code id="codeElement" class="json"></code></pre>
+        <div>
+          <div class="margin10">
+            <button id="btnCopy" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--accent">
+              <i class="material-icons mdc-button__icon" aria-hidden="true">content_copy</i>
+            </button>
+            <div class="mdl-tooltip" for="btnCopy">Copy</div>
+          </div>
+          <div class="margin10">
+            <button id="btnPaste" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--accent">
+              <i class="material-icons mdc-button__icon" aria-hidden="true">send</i>
+            </button>
+            <div class="mdl-tooltip" for="btnPaste">Send to editor</div>
+          </div>
         </div>
       </div>
-    </div>
-
+    
       <button id="copyText">Copy to clipboard</button>
       <button id="sendToEditor">Send to editor</button>
-
-      <script nonce=${nonce} src="${scriptUri}"></script>
+    
+      <script nonce="${nonce}" src="${scriptUri}"></script>
     </body>
-    </html>`;
+    
+    </html>
+    `;
   }
 }
