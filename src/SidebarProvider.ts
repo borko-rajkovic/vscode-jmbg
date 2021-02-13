@@ -116,20 +116,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           vscode.env.clipboard.writeText(data.value);
           break;
         }
-        case 'onInfo': {
-          if (!data.value) {
-            return;
-          }
-          vscode.window.showInformationMessage(data.value);
-          break;
-        }
-        case 'onError': {
-          if (!data.value) {
-            return;
-          }
-          vscode.window.showErrorMessage(data.value);
-          break;
-        }
         case 'sendToEditor': {
           const activeEditor = vscode.window.activeTextEditor;
           if (activeEditor) {
