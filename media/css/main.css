@@ -1,13 +1,8 @@
-#p1 {
-  background-color: dimgrey;
-}
-
 #codeContainer {
   display: flex;
   background-color: #282828;
   margin: 10px;
   border-radius: 4px;
-  max-width: 800px;
   min-width: 250px;
 }
 
