@@ -161,37 +161,37 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     return `
     <!DOCTYPE html>
     <html lang="en">
-    
+
     <head>
       <meta charset="UTF-8" />
-    
+
       <!--
             Use a content security policy to only allow loading images from https or from our extension directory,
             and only allow scripts that have a specific nonce.
           -->
       <meta http-equiv="Content-Security-Policy"
         content="default-src 'none'; font-src ${webview.cspSource}; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';" />
-    
+
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
       <link href="${stylesResetUri}" rel="stylesheet" />
       <link href="${stylesVSCodeUri}" rel="stylesheet" />
       <link href="${stylesMainUri}" rel="stylesheet" />
       <link href="${stylesHighlightUri}" rel="stylesheet" />
       <script nonce="${nonce}" src="${highlightScriptUri}"></script>
-    
+
       <script nonce="${nonce}" src="${materialScriptUri}"></script>
       <link rel="stylesheet" href="${stylesMaterial}" />
       <link rel="stylesheet" href="${fontMaterial}" />
-    
+
       <title>JMBG</title>
     </head>
-    
+
     <body>
-      <h1 class="margin0" id="lines-of-code-counter">0</h1>
-    
+      <h1 class="margin0">Title</h1>
+
       <p id="p1">Hello, I'm TEXT 1</p>
-    
+
       <div id="codeContainer">
         <pre id="preCode"><code id="codeElement" class="json"></code></pre>
         <div>
@@ -199,23 +199,23 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             <button id="btnCopy" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--accent">
               <i class="material-icons mdc-button__icon" aria-hidden="true">content_copy</i>
             </button>
-            <div class="mdl-tooltip" for="btnCopy">Copy</div>
+            <div id="btnCopyTooltip" class="mdl-tooltip" for="btnCopy">Copy</div>
           </div>
           <div class="margin10">
             <button id="btnPaste" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--accent">
               <i class="material-icons mdc-button__icon" aria-hidden="true">send</i>
             </button>
-            <div class="mdl-tooltip" for="btnPaste">Send to editor</div>
+            <div id="btnPasteTooltip" class="mdl-tooltip" for="btnPaste">Send to editor</div>
           </div>
         </div>
       </div>
-    
+
       <button id="copyText">Copy to clipboard</button>
       <button id="sendToEditor">Send to editor</button>
-    
+
       <script nonce="${nonce}" src="${scriptUri}"></script>
     </body>
-    
+
     </html>
     `;
   }
