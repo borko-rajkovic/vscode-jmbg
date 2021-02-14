@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { window, workspace } from 'vscode';
 import { getNonce } from './getNonce';
-import { getSelectedText } from './utils';
+import { getSelectedText, parseErrorMessage } from './utils';
 import {
   validateJMBG,
   ValidationResult,
@@ -9,34 +9,15 @@ import {
   PersonData,
 } from 'ts-jmbg';
 
-function editorTextChanged(_view?: vscode.WebviewView) {
-  const editor = vscode.window.activeTextEditor;
-
-  if (!editor) {
-    _view?.webview.postMessage({
-      type: 'selectedText',
-      value: { text: null, validationResult: null },
-    });
-    return;
-  }
-
-  const { document, selection } = editor;
-
-  const { text } = getSelectedText(selection, document);
-
-  const validationResult: ValidationResult = validateJMBG(text);
-
-  let decoded: PersonData;
-
-  if (validationResult.valid) {
-    decoded = decodeJMBG(text);
-  }
-
-  _view?.webview.postMessage({
-    type: 'selectedText',
-    value: { text, validationResult },
-  });
+interface IMessage {
+  text: string;
+  valid: boolean;
+  reason: string;
+  decoded: PersonData;
 }
+
+// TODO on change visibility remove listener from events
+// TODO on dispose remove decoration and other listeners
 
 function getDecorationTypeFromConfig() {
   const config = workspace.getConfiguration('vscode-jmbg');
@@ -52,10 +33,108 @@ function getDecorationTypeFromConfig() {
   return decorationType;
 }
 
-const decorationType = getDecorationTypeFromConfig();
+const emptyDecoded: PersonData = {
+  day: null,
+  month: null,
+  year: null,
+  place: null,
+  region: null,
+  gender: null,
+};
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
+  private message: IMessage = this.emptyMessage;
+  private lastEditor: vscode.TextEditor;
+  private lastDecorationRange: { range: vscode.Range };
+
+  private decorationType = getDecorationTypeFromConfig();
+
+  get emptyMessage(): IMessage {
+    return {
+      text: null,
+      valid: false,
+      reason: null,
+      decoded: emptyDecoded,
+    };
+  }
+
+  setAndSendMessage(message: IMessage, _view?: vscode.WebviewView) {
+    this.message = message;
+    _view?.webview.postMessage(this.message);
+  }
+
   constructor(private readonly _extensionUri: vscode.Uri) {}
+
+  private editorTextChanged(_view?: vscode.WebviewView) {
+    const editor = vscode.window.activeTextEditor;
+
+    if (!editor) {
+      this.setAndSendMessage(this.emptyMessage, _view);
+      return;
+    }
+
+    const { document, selection } = editor;
+
+    const { text } = getSelectedText(selection, document);
+
+    if (!text) {
+      this.setAndSendMessage(this.emptyMessage, _view);
+      return;
+    }
+
+    const validationResult: ValidationResult = validateJMBG(text);
+
+    if (!validationResult.valid) {
+      const message = {
+        text,
+        valid: false,
+        reason: parseErrorMessage(validationResult.reason),
+        decoded: emptyDecoded,
+      };
+      this.setAndSendMessage(message, _view);
+    }
+
+    const decoded = decodeJMBG(text);
+    const message: IMessage = {
+      text,
+      valid: true,
+      reason: null,
+      decoded: { ...emptyDecoded, ...decoded },
+    };
+    this.setAndSendMessage(message, _view);
+  }
+
+  private setDecoration() {
+    const editor = vscode.window.activeTextEditor;
+
+    if (!editor) {
+      return;
+    }
+
+    const { document, selection } = editor;
+    const { range } = getSelectedText(selection, document);
+    const newDecoration = {
+      range,
+    };
+
+    editor.setDecorations(this.decorationType, [newDecoration]);
+    this.lastEditor = editor;
+    this.lastDecorationRange = newDecoration;
+  }
+
+  private refreshDecoration() {
+    const lastEditor = vscode.window.visibleTextEditors.find(
+      (editor) => this.lastEditor === editor
+    );
+
+    if (!this.lastEditor || !this.lastDecorationRange || !lastEditor) {
+      return;
+    }
+
+    this.lastEditor.setDecorations(this.decorationType, [
+      this.lastDecorationRange,
+    ]);
+  }
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
     console.log('resolveWebviewView');
@@ -70,33 +149,21 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     });
 
     vscode.window.onDidChangeTextEditorSelection(() => {
-      const editor = vscode.window.activeTextEditor;
-
-      if (!editor) {
-        return;
-      }
-
-      const { document, selection } = editor;
-      const { range } = getSelectedText(selection, document);
-      const newDecoration = {
-        range,
-      };
-
-      editor.setDecorations(decorationType, [newDecoration]);
-
-      editorTextChanged(webviewView);
+      console.log('onDidChangeTextEditorSelection');
+      this.setDecoration();
+      this.editorTextChanged(webviewView);
     });
 
     vscode.window.onDidChangeActiveTextEditor(() => {
-      const editor = vscode.window.activeTextEditor;
+      console.log('onDidChangeActiveTextEditor');
+      this.editorTextChanged();
+    });
 
-      if (!editor) {
-        webviewView?.webview.postMessage({
-          type: 'selectedText',
-          value: { text: null, validationResult: null },
-        });
-        return;
-      }
+    workspace.onDidChangeConfiguration(() => {
+      //clear all decorations
+      this.decorationType.dispose();
+      this.decorationType = getDecorationTypeFromConfig();
+      this.refreshDecoration();
     });
 
     webviewView.webview.options = {
@@ -108,21 +175,29 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    editorTextChanged(webviewView);
+    this.editorTextChanged(webviewView);
 
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
         case 'copy': {
-          vscode.env.clipboard.writeText(data.value);
+          vscode.env.clipboard.writeText(
+            JSON.stringify(this.message.decoded, null, 2)
+          );
           break;
         }
         case 'sendToEditor': {
           const activeEditor = vscode.window.activeTextEditor;
-          if (activeEditor) {
-            activeEditor.edit((editBuilder) => {
-              editBuilder.replace(activeEditor.selection, data.value);
-            });
+          if (!activeEditor) {
+            break;
           }
+
+          activeEditor.edit((editBuilder) => {
+            editBuilder.replace(
+              activeEditor.selection,
+              JSON.stringify(this.message.decoded, null, 2)
+            );
+          });
+
           break;
         }
       }
