@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import { generateRandomCommand, validateCommand } from './commands';
-import { SidebarProvider } from './SidebarProvider';
+import { SidebarProvider } from './sidebar/SidebarProvider';
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(

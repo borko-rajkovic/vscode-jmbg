@@ -1,7 +1,8 @@
 import { generateRandomJMBG, validateJMBG } from 'ts-jmbg';
 import * as vscode from 'vscode';
 
-import { getSelectedText, parseErrorMessage } from './utils';
+import { getSelectedText } from './utils/getSelectedText';
+import { parseErrorMessage } from './utils/parseErrorMessage';
 
 export const validateCommand = () => {
   const editor = vscode.window.activeTextEditor;

@@ -1,47 +1,24 @@
 import * as vscode from 'vscode';
 import { workspace } from 'vscode';
-import { getNonce } from './getNonce';
-import { getSelectedText, parseErrorMessage } from './utils';
-import {
-  validateJMBG,
-  ValidationResult,
-  decodeJMBG,
-  PersonData,
-} from 'ts-jmbg';
-import { getDecorationTypeFromConfig } from './getDecorationTypeFromConfig';
+import { getNonce } from '../utils/getNonce';
+import { getSelectedText } from '../utils/getSelectedText';
+import { parseErrorMessage } from '../utils/parseErrorMessage';
+import { validateJMBG, ValidationResult, decodeJMBG } from 'ts-jmbg';
+import { getDecorationTypeFromConfig } from '../utils/getDecorationTypeFromConfig';
+import { emptyMessage } from './message/emptyMessage';
+import { IMessage } from '../interfaces/IMessage';
+import { emptyDecoded } from './message/emptyDecoded';
+import { createUriFactory } from '../utils/createUriFactory';
 
-interface IMessage {
-  text: string;
-  valid: boolean;
-  reason: string;
-  decoded: PersonData;
-}
-
-const emptyDecoded: PersonData = {
-  day: null,
-  month: null,
-  year: null,
-  place: null,
-  region: null,
-  gender: null,
-};
-
+// TODO on change visibility remove listener from events
+// TODO on dispose remove decoration and other listeners
 export class SidebarProvider implements vscode.WebviewViewProvider {
-  private _message: IMessage = this._emptyMessage;
+  private _message: IMessage = emptyMessage;
   private _lastEditor: vscode.TextEditor;
   private _lastDecorationRange: { range: vscode.Range };
   private _decorationType = getDecorationTypeFromConfig();
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
-
-  private get _emptyMessage(): IMessage {
-    return {
-      text: null,
-      valid: false,
-      reason: null,
-      decoded: emptyDecoded,
-    };
-  }
 
   private _setAndSendMessage(message: IMessage, _view?: vscode.WebviewView) {
     this._message = message;
@@ -52,7 +29,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const editor = vscode.window.activeTextEditor;
 
     if (!editor) {
-      this._setAndSendMessage(this._emptyMessage, _view);
+      this._setAndSendMessage(emptyMessage, _view);
       return;
     }
 
@@ -61,7 +38,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const { text } = getSelectedText(selection, document);
 
     if (!text) {
-      this._setAndSendMessage(this._emptyMessage, _view);
+      this._setAndSendMessage(emptyMessage, _view);
       return;
     }
 
@@ -175,9 +152,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           }
 
           activeEditor.edit((editBuilder) => {
-            editBuilder.replace(
-              activeEditor.selection,
-              JSON.stringify(this._message.decoded, null, 2)
+            activeEditor.selection.active.line;
+
+            editBuilder.insert(
+              activeEditor.selection.active,
+              '\n\n' + JSON.stringify(this._message.decoded, null, 2)
             );
           });
 
@@ -187,31 +166,31 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     });
   }
 
-  private _styleUri(webview: vscode.Webview, resource: string) {
-    return webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'css', resource)
-    );
-  }
-
-  private _scriptUri(webview: vscode.Webview, resource: string) {
-    return webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'js', resource)
-    );
-  }
-
   private _getHtmlForWebview(webview: vscode.Webview) {
     // Styles
-    const stylesResetUri = this._styleUri(webview, 'reset.css');
-    const stylesVSCodeUri = this._styleUri(webview, 'vscode.css');
-    const stylesMainUri = this._styleUri(webview, 'main.css');
-    const stylesHighlightUri = this._styleUri(webview, 'gruvbox-dark.css');
-    const stylesMaterial = this._styleUri(webview, 'mat.light_blue-cyan.css');
-    const fontMaterial = this._styleUri(webview, 'font-material.css');
+    const createStyleUri = createUriFactory(
+      this._extensionUri,
+      ['media', 'css'],
+      webview
+    );
+
+    const stylesResetUri = createStyleUri('reset.css');
+    const stylesVSCodeUri = createStyleUri('vscode.css');
+    const stylesMainUri = createStyleUri('main.css');
+    const stylesHighlightUri = createStyleUri('gruvbox-dark.css');
+    const stylesMaterial = createStyleUri('mat.light_blue-cyan.css');
+    const fontMaterial = createStyleUri('font-material.css');
 
     // Scripts
-    const highlightScriptUri = this._scriptUri(webview, 'highlight.pack.js');
-    const materialScriptUri = this._scriptUri(webview, 'material.min.js');
-    const scriptUri = this._scriptUri(webview, 'main.js');
+    const createScriptUri = createUriFactory(
+      this._extensionUri,
+      ['media', 'js'],
+      webview
+    );
+
+    const highlightScriptUri = createScriptUri('highlight.pack.js');
+    const materialScriptUri = createScriptUri('material.min.js');
+    const scriptUri = createScriptUri('main.js');
 
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();

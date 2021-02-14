@@ -1,7 +1,5 @@
 import { window, workspace } from 'vscode';
 
-// TODO on change visibility remove listener from events
-// TODO on dispose remove decoration and other listeners
 export function getDecorationTypeFromConfig() {
   const config = workspace.getConfiguration('vscode-jmbg');
   const borderColor = config.get<string>('borderColor');
