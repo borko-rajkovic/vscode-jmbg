@@ -43,13 +43,14 @@ const emptyDecoded: PersonData = {
 };
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
-  private message: IMessage = this.emptyMessage;
-  private lastEditor: vscode.TextEditor;
-  private lastDecorationRange: { range: vscode.Range };
+  private _message: IMessage = this._emptyMessage;
+  private _lastEditor: vscode.TextEditor;
+  private _lastDecorationRange: { range: vscode.Range };
+  private _decorationType = getDecorationTypeFromConfig();
 
-  private decorationType = getDecorationTypeFromConfig();
+  constructor(private readonly _extensionUri: vscode.Uri) {}
 
-  get emptyMessage(): IMessage {
+  private get _emptyMessage(): IMessage {
     return {
       text: null,
       valid: false,
@@ -58,18 +59,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     };
   }
 
-  setAndSendMessage(message: IMessage, _view?: vscode.WebviewView) {
-    this.message = message;
-    _view?.webview.postMessage(this.message);
+  private _setAndSendMessage(message: IMessage, _view?: vscode.WebviewView) {
+    this._message = message;
+    _view?.webview.postMessage(this._message);
   }
 
-  constructor(private readonly _extensionUri: vscode.Uri) {}
-
-  private editorTextChanged(_view?: vscode.WebviewView) {
+  private _editorTextChanged(_view?: vscode.WebviewView) {
     const editor = vscode.window.activeTextEditor;
 
     if (!editor) {
-      this.setAndSendMessage(this.emptyMessage, _view);
+      this._setAndSendMessage(this._emptyMessage, _view);
       return;
     }
 
@@ -78,7 +77,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const { text } = getSelectedText(selection, document);
 
     if (!text) {
-      this.setAndSendMessage(this.emptyMessage, _view);
+      this._setAndSendMessage(this._emptyMessage, _view);
       return;
     }
 
@@ -91,7 +90,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         reason: parseErrorMessage(validationResult.reason),
         decoded: emptyDecoded,
       };
-      this.setAndSendMessage(message, _view);
+      this._setAndSendMessage(message, _view);
     }
 
     const decoded = decodeJMBG(text);
@@ -101,10 +100,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       reason: null,
       decoded: { ...emptyDecoded, ...decoded },
     };
-    this.setAndSendMessage(message, _view);
+    this._setAndSendMessage(message, _view);
   }
 
-  private setDecoration() {
+  private _setDecoration() {
     const editor = vscode.window.activeTextEditor;
 
     if (!editor) {
@@ -117,22 +116,22 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       range,
     };
 
-    editor.setDecorations(this.decorationType, [newDecoration]);
-    this.lastEditor = editor;
-    this.lastDecorationRange = newDecoration;
+    editor.setDecorations(this._decorationType, [newDecoration]);
+    this._lastEditor = editor;
+    this._lastDecorationRange = newDecoration;
   }
 
-  private refreshDecoration() {
+  private _refreshDecoration() {
     const lastEditor = vscode.window.visibleTextEditors.find(
-      (editor) => this.lastEditor === editor
+      (editor) => this._lastEditor === editor
     );
 
-    if (!this.lastEditor || !this.lastDecorationRange || !lastEditor) {
+    if (!this._lastEditor || !this._lastDecorationRange || !lastEditor) {
       return;
     }
 
-    this.lastEditor.setDecorations(this.decorationType, [
-      this.lastDecorationRange,
+    this._lastEditor.setDecorations(this._decorationType, [
+      this._lastDecorationRange,
     ]);
   }
 
@@ -150,20 +149,20 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     vscode.window.onDidChangeTextEditorSelection(() => {
       console.log('onDidChangeTextEditorSelection');
-      this.setDecoration();
-      this.editorTextChanged(webviewView);
+      this._setDecoration();
+      this._editorTextChanged(webviewView);
     });
 
     vscode.window.onDidChangeActiveTextEditor(() => {
       console.log('onDidChangeActiveTextEditor');
-      this.editorTextChanged();
+      this._editorTextChanged();
     });
 
     workspace.onDidChangeConfiguration(() => {
       //clear all decorations
-      this.decorationType.dispose();
-      this.decorationType = getDecorationTypeFromConfig();
-      this.refreshDecoration();
+      this._decorationType.dispose();
+      this._decorationType = getDecorationTypeFromConfig();
+      this._refreshDecoration();
     });
 
     webviewView.webview.options = {
@@ -175,13 +174,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    this.editorTextChanged(webviewView);
+    this._editorTextChanged(webviewView);
 
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
         case 'copy': {
           vscode.env.clipboard.writeText(
-            JSON.stringify(this.message.decoded, null, 2)
+            JSON.stringify(this._message.decoded, null, 2)
           );
           break;
         }
@@ -194,7 +193,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           activeEditor.edit((editBuilder) => {
             editBuilder.replace(
               activeEditor.selection,
-              JSON.stringify(this.message.decoded, null, 2)
+              JSON.stringify(this._message.decoded, null, 2)
             );
           });
 
