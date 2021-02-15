@@ -10,6 +10,13 @@ import { IMessage } from '../interfaces/IMessage';
 import { emptyDecoded } from './message/emptyDecoded';
 import { createUriFactory } from '../utils/createUriFactory';
 
+const wait = (n: number) =>
+  new Promise((resolve) =>
+    setTimeout(() => {
+      resolve;
+    }, n)
+  );
+
 // TODO on change visibility remove listener from events
 // TODO on dispose remove decoration and other listeners
 export class SidebarProvider implements vscode.WebviewViewProvider {
@@ -17,10 +24,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   private _lastEditor: vscode.TextEditor;
   private _lastDecorationRange: { range: vscode.Range };
   private _decorationType = getDecorationTypeFromConfig();
+  private _pasteInProgress = false;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
   private _setAndSendMessage(message: IMessage, _view?: vscode.WebviewView) {
+    console.log('Send message', message);
     this._message = message;
     _view?.webview.postMessage(this._message);
   }
@@ -110,6 +119,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     vscode.window.onDidChangeTextEditorSelection(() => {
       console.log('onDidChangeTextEditorSelection');
+      if (this._pasteInProgress) {
+        return;
+      }
       this._setDecoration();
       this._editorTextChanged(webviewView);
     });
@@ -151,13 +163,55 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
 
-          activeEditor.edit((editBuilder) => {
-            activeEditor.selection.active.line;
+          this._pasteInProgress = true;
+
+          activeEditor.edit(async (editBuilder) => {
+            this._decorationType.dispose();
+            this._decorationType = null;
+
+            const currentLineEndPosition = activeEditor.document.lineAt(
+              activeEditor.selection.active.line
+            ).range.end;
+
+            const activeLine = activeEditor.selection.active.line;
+            const activeChar = activeEditor.selection.active.character;
+
+            const currentLineEndCharacter = currentLineEndPosition.character;
+
+            activeEditor.selections = [
+              new vscode.Selection(
+                activeEditor.selection.active.with({
+                  character: currentLineEndCharacter,
+                }),
+                activeEditor.selection.active.with({
+                  character: currentLineEndCharacter,
+                })
+              ),
+            ];
 
             editBuilder.insert(
-              activeEditor.selection.active,
+              currentLineEndPosition,
               '\n\n' + JSON.stringify(this._message.decoded, null, 2)
             );
+
+            const newPosition: vscode.Position = new vscode.Position(
+              activeLine,
+              activeChar
+            );
+
+            // If we don't move it to next tick, it becomes unexpected,
+            // because we need to allow onDidChangeTextEditorSelection to be
+            // called and processed before following in code bellow
+
+            await wait(10);
+
+            this._pasteInProgress = false;
+
+            activeEditor.selections = [
+              new vscode.Selection(newPosition, newPosition),
+            ];
+
+            this._decorationType = getDecorationTypeFromConfig();
           });
 
           break;
