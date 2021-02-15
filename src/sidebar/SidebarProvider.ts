@@ -26,13 +26,18 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
-  private _setAndSendMessage(message: IMessage, _view?: vscode.WebviewView) {
+  private _setAndSendMessage(message: IMessage, _view: vscode.WebviewView) {
     console.log('Send message', message);
     this._message = message;
-    _view?.webview.postMessage(this._message);
+    _view.webview.postMessage(this._message);
   }
 
-  private _editorTextChanged(_view?: vscode.WebviewView) {
+  private _editorTextChanged(_view: vscode.WebviewView) {
+    this._sendMessageToWebView(_view);
+    this._setDecoration();
+  }
+
+  private _sendMessageToWebView(_view: vscode.WebviewView) {
     const editor = vscode.window.activeTextEditor;
 
     if (!editor) {
@@ -122,7 +127,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       if (webviewView.visible) {
         this._subscribeAllSubscribers(webviewView);
         this._editorTextChanged(webviewView);
-        this._setDecoration();
       } else {
         this._disposeSubscribersAndDecoration();
       }
@@ -138,7 +142,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     this._subscribeToMessages(webviewView);
 
     this._editorTextChanged(webviewView);
-    this._setDecoration();
   }
 
   private _subscribeAllSubscribers(webviewView: vscode.WebviewView) {
@@ -256,10 +259,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   private _subscribeToChangeActiveTextEditor(webviewView: vscode.WebviewView) {
     this._changeActiveTextEditorSubscription = vscode.window.onDidChangeActiveTextEditor(
-      () => {
-        this._editorTextChanged(webviewView);
-        this._setDecoration();
-      }
+      () => this._editorTextChanged(webviewView)
     );
   }
 
@@ -273,7 +273,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           return;
         }
         this._editorTextChanged(webviewView);
-        this._setDecoration();
       }
     );
   }
