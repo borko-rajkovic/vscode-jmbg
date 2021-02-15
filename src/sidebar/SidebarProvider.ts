@@ -265,7 +265,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   private _subscribeToChangeActiveTextEditor(webviewView: vscode.WebviewView) {
     this._changeActiveTextEditorSubscription = vscode.window.onDidChangeActiveTextEditor(
-      () => this._editorTextChanged(webviewView)
+      () => {
+        this._decorationType.dispose();
+        this._decorationType = null;
+        this._editorTextChanged(webviewView);
+      }
     );
   }
 
