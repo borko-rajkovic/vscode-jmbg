@@ -4,7 +4,7 @@ export const emptyDecoded: PersonData = {
   day: null,
   month: null,
   year: null,
-  place: null,
   region: null,
+  place: null,
   gender: null,
 };

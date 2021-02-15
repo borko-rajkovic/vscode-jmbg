@@ -75,7 +75,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       text,
       valid: true,
       reason: null,
-      decoded: { ...emptyDecoded, ...decoded },
+      decoded: {
+        ...emptyDecoded, // keep order of the elements as we like
+        ...decoded, // copy over data
+        place: decoded.place || emptyDecoded.place, // replaces undefined with null
+      },
     };
     this._setAndSendMessage(message, _view);
   }
