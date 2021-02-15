@@ -33,6 +33,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private _editorTextChanged(_view: vscode.WebviewView) {
+    if (this._pasteInProgress) {
+      return;
+    }
+
     this._sendMessageToWebView(_view);
     this._setDecoration();
   }
@@ -269,13 +273,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     webviewView: vscode.WebviewView
   ) {
     this._changeTextEditorSelectionSubscription = vscode.window.onDidChangeTextEditorSelection(
-      () => {
-        console.log('onDidChangeTextEditorSelection');
-        if (this._pasteInProgress) {
-          return;
-        }
-        this._editorTextChanged(webviewView);
-      }
+      () => this._editorTextChanged(webviewView)
     );
   }
 
