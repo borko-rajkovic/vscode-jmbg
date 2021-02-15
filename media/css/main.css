@@ -31,3 +31,7 @@
 #codeElement > span {
   white-space: normal;
 }
+
+.paddingTop20 {
+  padding-top: 20px;
+}

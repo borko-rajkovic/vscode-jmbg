@@ -44,7 +44,23 @@
     });
   }
 
+  function getTextSummary(text) {
+    if (!text) {
+      return '';
+    }
+
+    let processed = text.replace(/\r?\n|\r/g, ' ');
+    if (processed.length > 13) {
+      processed = processed.substr(0, 13) + '...';
+    }
+    return processed;
+  }
+
   function setAndHighlightElement(message) {
+    document.getElementById('selectedText').innerText = getTextSummary(
+      message.text
+    );
+
     document.getElementById('codeElement').innerHTML = JSON.stringify(
       message.decoded,
       null,

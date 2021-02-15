@@ -352,9 +352,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     </head>
 
     <body>
-      <h1 class="margin0">Title</h1>
-
-      <p id="p1">Hello, I'm TEXT 1</p>
+      <h4 class="margin0 paddingTop20">Please select text in editor</h4>
+  
+      <h6 class="margin0">Selected text: <span id="selectedText" class="selected-text mdl-color-text--primary"></span></h6>
 
       <div id="codeContainer">
         <pre id="preCode"><code id="codeElement" class="json"></code></pre>
