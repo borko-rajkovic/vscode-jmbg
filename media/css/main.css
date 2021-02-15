@@ -3,7 +3,7 @@
   background-color: #282828;
   margin: 10px;
   border-radius: 4px;
-  min-width: 250px;
+  min-width: 320px;
 }
 
 #preCode {
@@ -26,4 +26,8 @@
 
 .margin0 {
   margin-top: 0px;
+}
+
+#codeElement > span {
+  white-space: normal;
 }
