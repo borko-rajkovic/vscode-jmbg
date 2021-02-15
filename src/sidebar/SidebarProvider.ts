@@ -104,7 +104,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       (editor) => this._lastEditor === editor
     );
 
-    if (!this._lastEditor || !this._lastDecorationRange || !lastEditor) {
+    if (
+      !this._lastEditor ||
+      !this._lastDecorationRange ||
+      !lastEditor ||
+      !this._decorationType
+    ) {
       return;
     }
 
