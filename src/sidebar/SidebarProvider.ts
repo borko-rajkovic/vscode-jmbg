@@ -9,22 +9,20 @@ import { emptyMessage } from './message/emptyMessage';
 import { IMessage } from '../interfaces/IMessage';
 import { emptyDecoded } from './message/emptyDecoded';
 import { createUriFactory } from '../utils/createUriFactory';
+import { wait } from '../utils/wait';
 
-const wait = (n: number) =>
-  new Promise((resolve) =>
-    setTimeout(() => {
-      resolve;
-    }, n)
-  );
-
-// TODO on change visibility remove listener from events
-// TODO on dispose remove decoration and other listeners
 export class SidebarProvider implements vscode.WebviewViewProvider {
   private _message: IMessage = emptyMessage;
   private _lastEditor: vscode.TextEditor;
   private _lastDecorationRange: { range: vscode.Range };
-  private _decorationType = getDecorationTypeFromConfig();
   private _pasteInProgress = false;
+
+  private _decorationType = getDecorationTypeFromConfig();
+
+  private _changeTextEditorSelectionSubscription: vscode.Disposable;
+  private _changeActiveTextEditorSubscription: vscode.Disposable;
+  private _changeConfigurationSubscription: vscode.Disposable;
+  private _messageReceivedSubscription: vscode.Disposable;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
@@ -61,6 +59,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         decoded: emptyDecoded,
       };
       this._setAndSendMessage(message, _view);
+      return;
     }
 
     const decoded = decodeJMBG(text);
@@ -86,6 +85,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       range,
     };
 
+    if (!this._decorationType) {
+      this._decorationType = getDecorationTypeFromConfig();
+    }
+
     editor.setDecorations(this._decorationType, [newDecoration]);
     this._lastEditor = editor;
     this._lastDecorationRange = newDecoration;
@@ -106,38 +109,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
-    console.log('resolveWebviewView');
-    console.log('resolveWebviewView visible', webviewView.visible);
-
-    webviewView.onDidChangeVisibility(() => {
-      console.log('Visibility changed', webviewView?.visible);
-    });
-
-    webviewView.onDidDispose((e) => {
-      console.log('Disposed changed', e);
-    });
-
-    vscode.window.onDidChangeTextEditorSelection(() => {
-      console.log('onDidChangeTextEditorSelection');
-      if (this._pasteInProgress) {
-        return;
-      }
-      this._setDecoration();
-      this._editorTextChanged(webviewView);
-    });
-
-    vscode.window.onDidChangeActiveTextEditor(() => {
-      console.log('onDidChangeActiveTextEditor');
-      this._editorTextChanged();
-    });
-
-    workspace.onDidChangeConfiguration(() => {
-      //clear all decorations
-      this._decorationType.dispose();
-      this._decorationType = getDecorationTypeFromConfig();
-      this._refreshDecoration();
-    });
-
     webviewView.webview.options = {
       // Allow scripts in the webview
       enableScripts: true,
@@ -147,77 +118,164 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    this._editorTextChanged(webviewView);
-
-    webviewView.webview.onDidReceiveMessage(async (data) => {
-      switch (data.type) {
-        case 'copy': {
-          vscode.env.clipboard.writeText(
-            JSON.stringify(this._message.decoded, null, 2)
-          );
-          break;
-        }
-        case 'sendToEditor': {
-          const activeEditor = vscode.window.activeTextEditor;
-          if (!activeEditor) {
-            break;
-          }
-
-          this._pasteInProgress = true;
-
-          activeEditor.edit(async (editBuilder) => {
-            this._decorationType.dispose();
-            this._decorationType = null;
-
-            const currentLineEndPosition = activeEditor.document.lineAt(
-              activeEditor.selection.active.line
-            ).range.end;
-
-            const activeLine = activeEditor.selection.active.line;
-            const activeChar = activeEditor.selection.active.character;
-
-            const currentLineEndCharacter = currentLineEndPosition.character;
-
-            activeEditor.selections = [
-              new vscode.Selection(
-                activeEditor.selection.active.with({
-                  character: currentLineEndCharacter,
-                }),
-                activeEditor.selection.active.with({
-                  character: currentLineEndCharacter,
-                })
-              ),
-            ];
-
-            editBuilder.insert(
-              currentLineEndPosition,
-              '\n\n' + JSON.stringify(this._message.decoded, null, 2)
-            );
-
-            const newPosition: vscode.Position = new vscode.Position(
-              activeLine,
-              activeChar
-            );
-
-            // If we don't move it to next tick, it becomes unexpected,
-            // because we need to allow onDidChangeTextEditorSelection to be
-            // called and processed before following in code bellow
-
-            await wait(10);
-
-            this._pasteInProgress = false;
-
-            activeEditor.selections = [
-              new vscode.Selection(newPosition, newPosition),
-            ];
-
-            this._decorationType = getDecorationTypeFromConfig();
-          });
-
-          break;
-        }
+    webviewView.onDidChangeVisibility(() => {
+      if (webviewView.visible) {
+        this._subscribeAllSubscribers(webviewView);
+        this._editorTextChanged(webviewView);
+        this._setDecoration();
+      } else {
+        this._disposeSubscribersAndDecoration();
       }
     });
+
+    webviewView.onDidDispose(() => {
+      this._disposeSubscribersAndDecoration();
+    });
+
+    this._subscribeToTextEditorSelectionChange(webviewView);
+    this._subscribeToChangeActiveTextEditor(webviewView);
+    this._subscribeToChangeConfiguration();
+    this._subscribeToMessages(webviewView);
+
+    this._editorTextChanged(webviewView);
+    this._setDecoration();
+  }
+
+  private _subscribeAllSubscribers(webviewView: vscode.WebviewView) {
+    this._subscribeToChangeActiveTextEditor(webviewView);
+    this._subscribeToChangeConfiguration();
+    this._subscribeToTextEditorSelectionChange(webviewView);
+    this._subscribeToMessages(webviewView);
+  }
+
+  private _disposeSubscribersAndDecoration() {
+    this._changeTextEditorSelectionSubscription.dispose();
+    this._changeActiveTextEditorSubscription.dispose();
+    this._changeConfigurationSubscription.dispose();
+    this._messageReceivedSubscription.dispose();
+
+    this._changeTextEditorSelectionSubscription = null;
+    this._changeActiveTextEditorSubscription = null;
+    this._changeConfigurationSubscription = null;
+    this._messageReceivedSubscription = null;
+
+    if (this._decorationType) {
+      this._decorationType.dispose();
+      this._decorationType = null;
+    }
+  }
+
+  private _subscribeToMessages(webviewView: vscode.WebviewView) {
+    this._messageReceivedSubscription = webviewView.webview.onDidReceiveMessage(
+      async (data) => {
+        switch (data.type) {
+          case 'copy': {
+            vscode.env.clipboard.writeText(
+              JSON.stringify(this._message.decoded, null, 2)
+            );
+            break;
+          }
+          case 'sendToEditor': {
+            this._changeTextEditorSelectionSubscription.dispose();
+            this._changeTextEditorSelectionSubscription = null;
+
+            const activeEditor = vscode.window.activeTextEditor;
+            if (!activeEditor) {
+              break;
+            }
+
+            this._pasteInProgress = true;
+
+            activeEditor.edit(async (editBuilder) => {
+              this._decorationType.dispose();
+              this._decorationType = null;
+
+              const currentLineEndPosition = activeEditor.document.lineAt(
+                activeEditor.selection.active.line
+              ).range.end;
+
+              const activeLine = activeEditor.selection.active.line;
+              const activeChar = activeEditor.selection.active.character;
+
+              const currentLineEndCharacter = currentLineEndPosition.character;
+
+              activeEditor.selections = [
+                new vscode.Selection(
+                  activeEditor.selection.active.with({
+                    character: currentLineEndCharacter,
+                  }),
+                  activeEditor.selection.active.with({
+                    character: currentLineEndCharacter,
+                  })
+                ),
+              ];
+
+              editBuilder.insert(
+                currentLineEndPosition,
+                '\n\n' + JSON.stringify(this._message.decoded, null, 2)
+              );
+
+              const newPosition: vscode.Position = new vscode.Position(
+                activeLine,
+                activeChar
+              );
+
+              // If we don't move it to next tick, it becomes unexpected,
+              // because we need to allow onDidChangeTextEditorSelection to be
+              // called and processed before following in code bellow
+              await wait(100);
+
+              this._subscribeToTextEditorSelectionChange(webviewView);
+
+              this._pasteInProgress = false;
+
+              activeEditor.selections = [
+                new vscode.Selection(newPosition, newPosition),
+              ];
+
+              this._decorationType = getDecorationTypeFromConfig();
+            });
+
+            break;
+          }
+        }
+      }
+    );
+  }
+
+  private _subscribeToChangeConfiguration() {
+    this._changeConfigurationSubscription = workspace.onDidChangeConfiguration(
+      () => {
+        //clear all decorations
+        this._decorationType.dispose();
+        this._decorationType = getDecorationTypeFromConfig();
+        this._refreshDecoration();
+      }
+    );
+  }
+
+  private _subscribeToChangeActiveTextEditor(webviewView: vscode.WebviewView) {
+    this._changeActiveTextEditorSubscription = vscode.window.onDidChangeActiveTextEditor(
+      () => {
+        this._editorTextChanged(webviewView);
+        this._setDecoration();
+      }
+    );
+  }
+
+  private _subscribeToTextEditorSelectionChange(
+    webviewView: vscode.WebviewView
+  ) {
+    this._changeTextEditorSelectionSubscription = vscode.window.onDidChangeTextEditorSelection(
+      () => {
+        console.log('onDidChangeTextEditorSelection');
+        if (this._pasteInProgress) {
+          return;
+        }
+        this._editorTextChanged(webviewView);
+        this._setDecoration();
+      }
+    );
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
