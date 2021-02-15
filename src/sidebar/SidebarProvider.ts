@@ -141,10 +141,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       this._disposeSubscribersAndDecoration();
     });
 
-    this._subscribeToTextEditorSelectionChange(webviewView);
-    this._subscribeToChangeActiveTextEditor(webviewView);
-    this._subscribeToChangeConfiguration();
-    this._subscribeToMessages(webviewView);
+    this._subscribeAllSubscribers(webviewView);
 
     this._editorTextChanged(webviewView);
   }
