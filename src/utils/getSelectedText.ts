@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { isRangeSimplyCursorPosition } from './isRangeSimplyCursorPosition';
 
+/**
+ * If there is no selected chars, take word from current position of the cursor
+ */
 export const getSelectedText = (
   selection: vscode.Selection,
   document: vscode.TextDocument
