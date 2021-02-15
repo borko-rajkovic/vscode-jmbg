@@ -27,7 +27,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
   private _setAndSendMessage(message: IMessage, _view: vscode.WebviewView) {
-    console.log('Send message', message);
     this._message = message;
     _view.webview.postMessage(this._message);
   }
@@ -185,26 +184,37 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             break;
           }
           case 'sendToEditor': {
-            this._changeTextEditorSelectionSubscription.dispose();
-            this._changeTextEditorSelectionSubscription = null;
-
             const activeEditor = vscode.window.activeTextEditor;
             if (!activeEditor) {
               break;
             }
 
+            // On this action, we should detach from listening on change editor selection,
+            // because we are going to change selection manually in code bellow
+            this._changeTextEditorSelectionSubscription.dispose();
+            this._changeTextEditorSelectionSubscription = null;
+
+            // Also, we should remove decoration, because of visual effects that will
+            // happen if we keep it (after insert for a split moment selection is widened to inserted text)
+            this._decorationType.dispose();
+            this._decorationType = null;
+
             this._pasteInProgress = true;
 
             activeEditor.edit(async (editBuilder) => {
-              this._decorationType.dispose();
-              this._decorationType = null;
+              const activeLine = activeEditor.selection.active.line;
+              const activeChar = activeEditor.selection.active.character;
+
+              // Prepare our return position to be the same as starting
+              // In this way after action is done, selection should be moved back to where it was before
+              const returnPosition: vscode.Position = new vscode.Position(
+                activeLine,
+                activeChar
+              );
 
               const currentLineEndPosition = activeEditor.document.lineAt(
                 activeEditor.selection.active.line
               ).range.end;
-
-              const activeLine = activeEditor.selection.active.line;
-              const activeChar = activeEditor.selection.active.character;
 
               const currentLineEndCharacter = currentLineEndPosition.character;
 
@@ -219,19 +229,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 ),
               ];
 
+              // Insert new content at the end of current line that is selected
               editBuilder.insert(
                 currentLineEndPosition,
                 '\n\n' + JSON.stringify(this._message.decoded, null, 2)
               );
 
-              const newPosition: vscode.Position = new vscode.Position(
-                activeLine,
-                activeChar
-              );
-
-              // If we don't move it to next tick, it becomes unexpected,
-              // because we need to allow onDidChangeTextEditorSelection to be
-              // called and processed before following in code bellow
+              // After we subscribe to TextEditorSelectionChange, we are going to receive
+              // events it produces
+              //
+              // If there is no delay, we can pick up some events that are fired
+              // before we subscribed to listen for them
+              // (in our case, we don't want to listen to selection changed on moving to end of line
+              // and on insert new text in editor)
               await wait(100);
 
               this._subscribeToTextEditorSelectionChange(webviewView);
@@ -239,10 +249,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
               this._pasteInProgress = false;
 
               activeEditor.selections = [
-                new vscode.Selection(newPosition, newPosition),
+                new vscode.Selection(returnPosition, returnPosition),
               ];
-
-              this._decorationType = getDecorationTypeFromConfig();
             });
 
             break;
@@ -307,7 +315,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const materialScriptUri = createScriptUri('material.min.js');
     const scriptUri = createScriptUri('main.js');
 
-    // Use a nonce to only allow a specific script to be run.
+    // Use a nonce to only allow a specific script to be run
     const nonce = getNonce();
 
     return `
