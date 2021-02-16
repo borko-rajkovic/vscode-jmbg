@@ -32,6 +32,8 @@
 
   document.getElementById('btnPaste').addEventListener('click', sendToEditor);
 
+  document.getElementById('visitGithub').addEventListener('click', visitGithub);
+
   function copyToClipboard() {
     vscode.postMessage({
       type: 'copy',
@@ -41,6 +43,12 @@
   function sendToEditor() {
     vscode.postMessage({
       type: 'sendToEditor',
+    });
+  }
+
+  function visitGithub() {
+    vscode.postMessage({
+      type: 'visitGithub',
     });
   }
 

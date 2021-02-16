@@ -259,6 +259,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
             break;
           }
+          case 'visitGithub': {
+            vscode.env.openExternal(
+              vscode.Uri.parse('https://github.com/borko-rajkovic/vscode-jmbg')
+            );
+            break;
+          }
         }
       }
     );
@@ -374,8 +380,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         </div>
       </div>
 
-      <button id="copyText">Copy to clipboard</button>
-      <button id="sendToEditor">Send to editor</button>
+      <button id="visitGithub">Visit github</button>
 
       <script nonce="${nonce}" src="${scriptUri}"></script>
     </body>
