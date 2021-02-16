@@ -67,9 +67,9 @@
   function setValidationElement(element, valid, reason) {
     if (valid) {
       element.classList.add('mdl-color-text--green');
-      element.classList.remove('mdl-color-text--red');
+      element.classList.remove('mdl-color-text--red-300');
     } else {
-      element.classList.add('mdl-color-text--red');
+      element.classList.add('mdl-color-text--red-300');
       element.classList.remove('mdl-color-text--green');
     }
 
