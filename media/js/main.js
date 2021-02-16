@@ -64,21 +64,39 @@
     return processed;
   }
 
+  function setValidationElement(element, valid, reason) {
+    if (valid) {
+      element.classList.add('mdl-color-text--green');
+      element.classList.remove('mdl-color-text--red');
+    } else {
+      element.classList.add('mdl-color-text--red');
+      element.classList.remove('mdl-color-text--green');
+    }
+
+    element.innerText = reason;
+  }
+
   function setAndHighlightElement(message) {
-    document.getElementById('selectedText').innerText = getTextSummary(
-      message.text
+    const { valid, reason, text, decoded } = message;
+
+    document.getElementById('selectedText').innerText = getTextSummary(text);
+
+    setValidationElement(
+      document.getElementById('validationResult'),
+      valid,
+      reason
     );
 
     document.getElementById('codeElement').innerHTML = JSON.stringify(
-      message.decoded,
+      decoded,
       null,
       2
     );
 
-    document.getElementById('btnCopy').disabled = !message.valid;
-    document.getElementById('btnPaste').disabled = !message.valid;
+    document.getElementById('btnCopy').disabled = !valid;
+    document.getElementById('btnPaste').disabled = !valid;
 
-    if (!message.valid) {
+    if (!valid) {
       document.getElementById('btnCopyTooltip').classList.remove('is-active');
       document.getElementById('btnPasteTooltip').classList.remove('is-active');
     } else {
