@@ -64,7 +64,7 @@
     return processed;
   }
 
-  function setValidationElement(element, valid, reason) {
+  function setValidationElement(element, valid, reason, text) {
     if (valid) {
       element.classList.add('mdl-color-text--green');
       element.classList.remove('mdl-color-text--red-300');
@@ -73,7 +73,7 @@
       element.classList.remove('mdl-color-text--green');
     }
 
-    element.innerText = reason;
+    element.innerText = text ? (reason ? reason : 'Ok') : '';
   }
 
   function setAndHighlightElement(message) {
@@ -84,7 +84,8 @@
     setValidationElement(
       document.getElementById('validationResult'),
       valid,
-      reason
+      reason,
+      text
     );
 
     document.getElementById('codeElement').innerHTML = JSON.stringify(

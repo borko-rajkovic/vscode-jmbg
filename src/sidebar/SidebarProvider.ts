@@ -382,7 +382,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         </div>
       </div>
 
-      <button id="visitGithub">Visit github</button>
+      <button id="visitGithub">Visit github page</button>
 
       <script nonce="${nonce}" src="${scriptUri}"></script>
     </body>
