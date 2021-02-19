@@ -21,7 +21,8 @@
 	"activationEvents": [
 		"onCommand:vscode-jmbg.validate",
 		"onCommand:vscode-jmbg.generate-random",
-		"onView:vscode-jmbg-sidebar"
+		"onView:vscode-jmbg-sidebar-validation",
+		"onView:vscode-jmbg-sidebar-random-generator"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
@@ -70,9 +71,13 @@
 			"vscode-jmbg-sidebar-view": [
 				{
 					"type": "webview",
-					"id": "vscode-jmbg-sidebar",
-					"name": "Validate and decode",
-					"icon": "images/icon.png"
+					"id": "vscode-jmbg-sidebar-validation",
+					"name": "Validate and decode"
+				},
+				{
+					"type": "webview",
+					"id": "vscode-jmbg-sidebar-random-generator",
+					"name": "Generate random"
 				}
 			]
 		},

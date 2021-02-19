@@ -1,17 +1,21 @@
 import * as vscode from 'vscode';
 import { workspace } from 'vscode';
-import { getNonce } from '../utils/getNonce';
-import { getSelectedText } from '../utils/getSelectedText';
-import { parseErrorMessage } from '../utils/parseErrorMessage';
+import { getNonce } from '../../utils/getNonce';
+import { getSelectedText } from '../../utils/getSelectedText';
+import { parseErrorMessage } from '../../utils/parseErrorMessage';
 import { validateJMBG, ValidationResult, decodeJMBG } from 'ts-jmbg';
-import { getDecorationTypeFromConfig } from '../utils/getDecorationTypeFromConfig';
+import { getDecorationTypeFromConfig } from '../../utils/getDecorationTypeFromConfig';
 import { emptyMessage } from './message/emptyMessage';
-import { IMessage } from '../interfaces/IMessage';
+import { IMessage } from '../../interfaces/IMessage';
 import { emptyDecoded } from './message/emptyDecoded';
-import { createUriFactory } from '../utils/createUriFactory';
-import { wait } from '../utils/wait';
+import { createUriFactory } from '../../utils/createUriFactory';
+import { wait } from '../../utils/wait';
 
-export class SidebarProvider implements vscode.WebviewViewProvider {
+// TODO on typing
+// TODO Generate random
+// TODO ViewContainer - collapse item
+// TODO icon for activitybar
+export class ValidationSidebarProvider implements vscode.WebviewViewProvider {
   private _message: IMessage = emptyMessage;
   private _lastEditor: vscode.TextEditor;
   private _lastDecorationRange: { range: vscode.Range };
@@ -303,7 +307,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     // Styles
     const createStyleUri = createUriFactory(
       this._extensionUri,
-      ['media', 'css'],
+      ['media', 'validationPage', 'css'],
       webview
     );
 
@@ -317,7 +321,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     // Scripts
     const createScriptUri = createUriFactory(
       this._extensionUri,
-      ['media', 'js'],
+      ['media', 'validationPage', 'js'],
       webview
     );
 

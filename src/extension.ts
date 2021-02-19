@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 
 import { generateRandomCommand, validateCommand } from './commands';
-import { SidebarProvider } from './sidebar/SidebarProvider';
+import { RandomGeneratorSidebarProvider } from './sidebar/random-generator/RandomGeneratorSidebarProvider';
+import { ValidationSidebarProvider } from './sidebar/validation/ValidationSidebarProvider';
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -17,8 +18,16 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
-      'vscode-jmbg-sidebar',
-      new SidebarProvider(context.extensionUri),
+      'vscode-jmbg-sidebar-validation',
+      new ValidationSidebarProvider(context.extensionUri),
+      { webviewOptions: { retainContextWhenHidden: true } }
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      'vscode-jmbg-sidebar-random-generator',
+      new RandomGeneratorSidebarProvider(context.extensionUri),
       { webviewOptions: { retainContextWhenHidden: true } }
     )
   );
