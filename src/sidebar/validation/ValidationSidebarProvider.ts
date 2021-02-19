@@ -11,9 +11,6 @@ import { emptyDecoded } from './message/emptyDecoded';
 import { createUriFactory } from '../../utils/createUriFactory';
 import { wait } from '../../utils/wait';
 
-// TODO on typing (delete text not triggering change)
-// TODO ViewContainer - collapse item
-// TODO icon for activitybar
 export class ValidationSidebarProvider implements vscode.WebviewViewProvider {
   private _message: IMessage = emptyMessage;
   private _lastEditor: vscode.TextEditor;
@@ -25,6 +22,7 @@ export class ValidationSidebarProvider implements vscode.WebviewViewProvider {
   private _changeTextEditorSelectionSubscription: vscode.Disposable;
   private _changeActiveTextEditorSubscription: vscode.Disposable;
   private _changeConfigurationSubscription: vscode.Disposable;
+  private _changeTextDocumentSubscription: vscode.Disposable;
   private _messageReceivedSubscription: vscode.Disposable;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
@@ -161,6 +159,7 @@ export class ValidationSidebarProvider implements vscode.WebviewViewProvider {
     this._subscribeToChangeConfiguration();
     this._subscribeToTextEditorSelectionChange(webviewView);
     this._subscribeToMessages(webviewView);
+    this._subscribeToChangeTextDocument(webviewView);
   }
 
   private _disposeSubscribersAndDecoration() {
@@ -168,16 +167,24 @@ export class ValidationSidebarProvider implements vscode.WebviewViewProvider {
     this._changeActiveTextEditorSubscription.dispose();
     this._changeConfigurationSubscription.dispose();
     this._messageReceivedSubscription.dispose();
+    this._changeTextDocumentSubscription.dispose();
 
     this._changeTextEditorSelectionSubscription = null;
     this._changeActiveTextEditorSubscription = null;
     this._changeConfigurationSubscription = null;
     this._messageReceivedSubscription = null;
+    this._changeTextDocumentSubscription = null;
 
     if (this._decorationType) {
       this._decorationType.dispose();
       this._decorationType = null;
     }
+  }
+
+  private _subscribeToChangeTextDocument(webviewView: vscode.WebviewView) {
+    this._changeTextDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
+      () => this._editorTextChanged(webviewView)
+    );
   }
 
   private _subscribeToMessages(webviewView: vscode.WebviewView) {
