@@ -17,6 +17,9 @@
 
   document.getElementById('btnCopy').addEventListener('click', copyToClipboard);
   document.getElementById('btnGenerate').addEventListener('click', generate);
+  document
+    .getElementById('btnGenerateRandom')
+    .addEventListener('click', generateInEditor);
 
   function copyToClipboard() {
     vscode.postMessage({
@@ -28,6 +31,12 @@
   function generate() {
     vscode.postMessage({
       type: 'generate',
+    });
+  }
+
+  function generateInEditor() {
+    vscode.postMessage({
+      type: 'generateInEditor',
     });
   }
 })();

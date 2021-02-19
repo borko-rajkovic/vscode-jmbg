@@ -11,8 +11,7 @@ import { emptyDecoded } from './message/emptyDecoded';
 import { createUriFactory } from '../../utils/createUriFactory';
 import { wait } from '../../utils/wait';
 
-// TODO on typing
-// TODO Generate random
+// TODO on typing (delete text not triggering change)
 // TODO ViewContainer - collapse item
 // TODO icon for activitybar
 export class ValidationSidebarProvider implements vscode.WebviewViewProvider {

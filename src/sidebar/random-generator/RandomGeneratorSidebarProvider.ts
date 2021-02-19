@@ -26,10 +26,33 @@ export class RandomGeneratorSidebarProvider
           webviewView.webview.postMessage(generateRandomJMBG());
           break;
         }
+        case 'generateInEditor': {
+          await this._generateInEditor();
+          break;
+        }
       }
     });
 
     webviewView.webview.postMessage(generateRandomJMBG());
+  }
+
+  private async _generateInEditor() {
+    const editor = vscode.window.activeTextEditor;
+
+    if (!editor || editor.selections.length === 0) {
+      vscode.window.showWarningMessage(
+        'Please open editor and make a selection'
+      );
+      return;
+    }
+
+    const { selections } = editor;
+
+    for (const selection of selections) {
+      await editor.edit((editBuilder) => {
+        editBuilder.replace(selection, generateRandomJMBG());
+      });
+    }
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
@@ -86,13 +109,13 @@ export class RandomGeneratorSidebarProvider
       <title>JMBG</title>
     </head>
 
-    <body class="paddingTop10">
+    <body class="paddingTop20">
       <div id="codeContainer">
         <div class="justify-center">
           <button id="btnGenerate" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--accent">
             <i class="material-icons mdc-button__icon" aria-hidden="true">refresh</i>
           </button>
-          <div id="btnRefreshTooltip" class="mdl-tooltip" for="btnRefresh">Generate</div>
+          <div id="btnGenerateTooltip" class="mdl-tooltip" for="btnGenerate">Generate</div>
         </div>
         <pre id="preCode"><code id="codeElement" class="json">1234567890123</code></pre>
         <div class="justify-center">
@@ -103,7 +126,9 @@ export class RandomGeneratorSidebarProvider
         </div>
       </div>
 
-      <button id="generateRandom">Generate new random JMBG</button>
+      <div class="tip">Tip: Use multi-cursor for multiple random JMBG</div>
+
+      <button id="btnGenerateRandom">Generate in editor</button>
 
       <script nonce="${nonce}" src="${scriptUri}"></script>
     </body>

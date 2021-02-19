@@ -42,3 +42,10 @@
 .paddingTop10 {
   padding-top: 10px;
 }
+
+.tip {
+  margin-top: 40px;
+  font-style: italic;
+  display: flex;
+  justify-content: center;
+}
