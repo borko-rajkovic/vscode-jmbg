@@ -7,11 +7,15 @@ Quickly check of string is valid JMBG and generate random JMBG in multi-cursor s
 
 ## Features
 
-### Sidebar - Validation
+### Sidebar
 
-In sidebar there will be JMBG item that allows validation and decode of selected string from editor. It will run validation on selected text, or on word that is underneath the cursor if no selection is made.
+In sidebar there will be JMBG item that allows:
 
-![JMBG Sidebar Validation](https://raw.githubusercontent.com/borko-rajkovic/vscode-jmbg/main/images/sidebar-validate.gif)
+- Validation and decode of selected string from editor
+
+- Random generation of JMBG
+
+![JMBG Sidebar Validation](https://raw.githubusercontent.com/borko-rajkovic/vscode-jmbg/main/images/sidebar.gif)
 
 If only one word is selected, the `vscode-jmbg.validate` will validate string. If there is no selection, `vscode-jmbg.validate` will take current cursor word and validate string:
 

@@ -72,12 +72,16 @@
 				{
 					"type": "webview",
 					"id": "vscode-jmbg-sidebar-validation",
-					"name": "Validate and decode"
+					"name": "Validate and decode",
+					"contextualTitle": "JMBG Validation",
+					"visibility": "visible"
 				},
 				{
 					"type": "webview",
 					"id": "vscode-jmbg-sidebar-random-generator",
-					"name": "Generate random"
+					"name": "Generate random",
+					"contextualTitle": "JMBG Random Generator",
+					"visibility": "collapsed"
 				}
 			]
 		},
