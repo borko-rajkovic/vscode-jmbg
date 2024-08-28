@@ -1,131 +1,131 @@
 {
-	"name": "vscode-jmbg",
-	"displayName": "jmbg",
-	"icon": "images/icon.png",
-	"description": "JMBG tools: validate and generate random JMBG",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/borko-rajkovic/vscode-jmbg"
-	},
-	"bugs": {
-		"url": "https://github.com/borko-rajkovic/vscode-jmbg/issues"
-	},
-	"publisher": "borko-rajkovic",
-	"version": "0.0.7",
-	"engines": {
-		"vscode": "^1.52.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:vscode-jmbg.validate",
-		"onCommand:vscode-jmbg.generate-random",
-		"onView:vscode-jmbg-sidebar-validation",
-		"onView:vscode-jmbg-sidebar-random-generator"
-	],
-	"main": "./dist/extension.js",
-	"contributes": {
-		"configuration": {
-			"properties": {
-				"vscode-jmbg.borderColor": {
-					"type": [
-						"string"
-					],
-					"default": "#65EAB9",
-					"description": "Change the border color. (Ex: 'red', '#FFF' #FFFFFFF, 'RGB(255,255,255)','RGB(255, 255, 255. 0.5) )"
-				},
-				"vscode-jmbg.borderWidth": {
-					"type": [
-						"string"
-					],
-					"default": "2px"
-				},
-				"vscode-jmbg.borderStyle": {
-					"type": [
-						"string"
-					],
-					"enum": [
-						"solid",
-						"dashed",
-						"inset",
-						"double",
-						"groove",
-						"outset",
-						"ridge"
-					],
-					"default": "solid"
-				}
-			}
-		},
-		"viewsContainers": {
-			"activitybar": [
-				{
-					"id": "vscode-jmbg-sidebar-view",
-					"title": "JMBG",
-					"icon": "images/icon-sidebar.png"
-				}
-			]
-		},
-		"views": {
-			"vscode-jmbg-sidebar-view": [
-				{
-					"type": "webview",
-					"id": "vscode-jmbg-sidebar-validation",
-					"name": "Validate and decode",
-					"contextualTitle": "JMBG Validation",
-					"visibility": "visible"
-				},
-				{
-					"type": "webview",
-					"id": "vscode-jmbg-sidebar-random-generator",
-					"name": "Generate random",
-					"contextualTitle": "JMBG Random Generator",
-					"visibility": "collapsed"
-				}
-			]
-		},
-		"commands": [
-			{
-				"command": "vscode-jmbg.validate",
-				"category": "JMBG",
-				"title": "Validate"
-			},
-			{
-				"command": "vscode-jmbg.generate-random",
-				"category": "JMBG",
-				"title": "Generate random"
-			}
-		]
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run package",
-		"compile": "webpack --config ./build/node-extension.webpack.config.js",
-		"watch": "webpack --watch --config ./build/node-extension.webpack.config.js",
-		"package": "webpack --mode production --devtool hidden-source-map --config ./build/node-extension.webpack.config.js",
-		"test-compile": "tsc -p ./",
-		"test-watch": "tsc -watch -p ./",
-		"pretest": "npm run test-compile && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/vscode": "^1.52.0",
-		"@types/glob": "^7.1.3",
-		"@types/mocha": "^8.0.4",
-		"@types/node": "^12.11.7",
-		"eslint": "^7.15.0",
-		"@typescript-eslint/eslint-plugin": "^4.9.0",
-		"@typescript-eslint/parser": "^4.9.0",
-		"glob": "^7.1.6",
-		"mocha": "^8.1.3",
-		"typescript": "^4.1.2",
-		"vscode-test": "^1.4.1",
-		"ts-loader": "^8.0.11",
-		"webpack": "^5.10.0",
-		"webpack-cli": "^4.2.0"
-	},
-	"dependencies": {
-		"ts-jmbg": "^1.0.2"
-	}
+  "name": "vscode-jmbg",
+  "displayName": "jmbg",
+  "icon": "images/icon.png",
+  "description": "JMBG tools: validate and generate random JMBG",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/borko-rajkovic/vscode-jmbg"
+  },
+  "bugs": {
+    "url": "https://github.com/borko-rajkovic/vscode-jmbg/issues"
+  },
+  "publisher": "borko-rajkovic",
+  "version": "0.0.8",
+  "engines": {
+    "vscode": "^1.52.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:vscode-jmbg.validate",
+    "onCommand:vscode-jmbg.generate-random",
+    "onView:vscode-jmbg-sidebar-validation",
+    "onView:vscode-jmbg-sidebar-random-generator"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "properties": {
+        "vscode-jmbg.borderColor": {
+          "type": [
+            "string"
+          ],
+          "default": "#65EAB9",
+          "description": "Change the border color. (Ex: 'red', '#FFF' #FFFFFFF, 'RGB(255,255,255)','RGB(255, 255, 255. 0.5) )"
+        },
+        "vscode-jmbg.borderWidth": {
+          "type": [
+            "string"
+          ],
+          "default": "2px"
+        },
+        "vscode-jmbg.borderStyle": {
+          "type": [
+            "string"
+          ],
+          "enum": [
+            "solid",
+            "dashed",
+            "inset",
+            "double",
+            "groove",
+            "outset",
+            "ridge"
+          ],
+          "default": "solid"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vscode-jmbg-sidebar-view",
+          "title": "JMBG",
+          "icon": "images/icon-sidebar.png"
+        }
+      ]
+    },
+    "views": {
+      "vscode-jmbg-sidebar-view": [
+        {
+          "type": "webview",
+          "id": "vscode-jmbg-sidebar-validation",
+          "name": "Validate and decode",
+          "contextualTitle": "JMBG Validation",
+          "visibility": "visible"
+        },
+        {
+          "type": "webview",
+          "id": "vscode-jmbg-sidebar-random-generator",
+          "name": "Generate random",
+          "contextualTitle": "JMBG Random Generator",
+          "visibility": "collapsed"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "vscode-jmbg.validate",
+        "category": "JMBG",
+        "title": "Validate"
+      },
+      {
+        "command": "vscode-jmbg.generate-random",
+        "category": "JMBG",
+        "title": "Generate random"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack --config ./build/node-extension.webpack.config.js",
+    "watch": "webpack --watch --config ./build/node-extension.webpack.config.js",
+    "package": "webpack --mode production --devtool hidden-source-map --config ./build/node-extension.webpack.config.js",
+    "test-compile": "tsc -p ./",
+    "test-watch": "tsc -watch -p ./",
+    "pretest": "npm run test-compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.52.0",
+    "@types/glob": "^7.1.3",
+    "@types/mocha": "^8.0.4",
+    "@types/node": "^12.11.7",
+    "eslint": "^7.15.0",
+    "@typescript-eslint/eslint-plugin": "^4.9.0",
+    "@typescript-eslint/parser": "^4.9.0",
+    "glob": "^7.1.6",
+    "mocha": "^8.1.3",
+    "typescript": "^4.1.2",
+    "vscode-test": "^1.4.1",
+    "ts-loader": "^8.0.11",
+    "webpack": "^5.10.0",
+    "webpack-cli": "^4.2.0"
+  },
+  "dependencies": {
+    "ts-jmbg": "^1.0.3"
+  }
 }
